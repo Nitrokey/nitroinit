@@ -1,0 +1,14 @@
+version: "3.2"
+services:
+
+  build-binaries:
+    image: debian:stretch
+    volumes: 
+      - type: bind
+        source: .
+        target: /nitroinit
+    network_mode: "host"
+    command:
+      - /bin/bash
+      - /nitroinit/build-binaries.sh
+    tty: true

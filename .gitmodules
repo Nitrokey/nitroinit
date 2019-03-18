@@ -1,0 +1,3 @@
+[submodule "python-pgpdump"]
+	path = python-pgpdump
+	url = https://github.com/alex-nitrokey/python-pgpdump

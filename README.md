@@ -17,7 +17,7 @@ sudo apt-get install pcscd
 
 ## Usage
 ```
-usage: nitroinit.py [-h] [--reader READER] --keyfile KEYFILE
+usage: nitroinit [-h] [--reader READER] --keyfile KEYFILE
 
 Generating and importing keys to Nitrokey devices
 
@@ -37,10 +37,11 @@ docker-compose run build-binaries
 
 ## TODOs
 
+* add option for gpg-agent usage
+* debug Nitrokey Start
 * automatically build windows
 * add --dry-run option
 * warn about existing keys
 * print ctime in key choose function
-* enable import of keys protected with passphrase (python-pgpdump related)
 * enable import of ECC keys (python-pgpdump related)
 * add option for generating new keys (outside of Nitrokey, thus with backup)

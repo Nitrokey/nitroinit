@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0
 
 
 import argparse
+import getpass
 import os
 import sys
 from pgpdump import AsciiData, BinaryData
@@ -101,7 +102,7 @@ def check_keys(keys):
 
 
 def print_summary(userid, keys):
-    print("\nThe following keys will be imported to the Nitrokey\n")
+    print("\nThe following keys will be imported to the Nitrokey:\n")
     print(userid)
     for flag, keylist in keys.items():
         if keylist:
@@ -137,12 +138,15 @@ def import_keys(keys):
 
 def main():
 
+    # get passphrase
+    passphrase = getpass.getpass("Please provide passphrase of the key: ")
+
     # open key file and parse it to get the key packets
     with open(keyfile, 'rb') as f:
         if keyfile.endswith('.asc') or keyfile.endswith('.txt'):
-            data = AsciiData(f.read())
+            data = AsciiData(f.read(), secret_keys=True, passphrase=passphrase)
         else:
-            data = BinaryData(f.read())
+            data = BinaryData(f.read(), secret_keys=True, passphrase=passphrase)
 
     userid, keys = parse_packets(data.packets())
     # TODO add test case for this

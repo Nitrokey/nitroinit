@@ -43,5 +43,5 @@ docker-compose run build-binaries
 * add --dry-run option
 * warn about existing keys
 * print ctime in key choose function
-* enable import of ECC keys (python-pgpdump related)
+* enable import of curve25519 keys (python-pgpdump related)
 * add option for generating new keys (outside of Nitrokey, thus with backup)

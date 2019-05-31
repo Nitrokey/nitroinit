@@ -198,16 +198,51 @@ class OpenPGPCard():
 
         return
 
-    def set_algo_attr(self, algo, slot, modulus_bitlen=None):
+    def import_ecckey(self, algo, oid, private, ctime, fp, slot):
+        priv_key_template = []
+
+        # key slot mapping
+        slots = {1: 0xB6, 2: 0xB8, 3: 0xA4}
+
+        # FIXME add sanity checks (does the card fullfill all caps etc.)
+        if not self.admin_unlocked:
+            self.verify_admin()
+        self.set_algo_attr(algo, slot, oid=oid)
+
+        # transform keys from int to list of bytes if necessary
+        if isinstance(private, int):
+            private = int2bytes(private, (private.bit_length()+7)//8)
+
+        # construct Extended Header list
+        # see 4.4.3.9 of the specification (OpenPGP Card 3.3.1)
+        priv_key_template.extend([0x92] + tlv_len(private))
+        key_data = [0x5F, 0x48] + tlv_len(private) + private
+        ext_header_list = [slots.get(slot), 0x00, 0x7F, 0x48, len(priv_key_template)] \
+                        + priv_key_template + key_data
+        self.put_data(0x4D, [0x4D] + tlv_len(ext_header_list) + ext_header_list)
+
+        self.store_creationtime(ctime, slot)
+        self.store_fingerprint(fp, slot)
+        return
+
+    def set_algo_attr(self, algo, slot, modulus_bitlen=None, oid=None):
         if (slot not in (1, 2, 3)):
             raise ValueError("Wrong slot number! There exist only key slots 1, 2 and 3")
 
-        if algo is "rsa":
+        if algo == "rsa":
             data = [0x01, (modulus_bitlen >> 8) & 0xff, modulus_bitlen >> 0xff, 0x00, 0x20, 0x00]
-            self.put_data(0xC0 + slot, data)
+        elif algo == "ecdsa" or algo == "ecdh":
+            if algo == "ecdh" and slot == 2:
+                data = [18]
+                data.extend(list(oid))
+            elif algo == "ecdsa" and slot in (1,3):
+                data = [19]
+                data.extend(list(oid))
+            else:
+                raise ValueError("ECC type does not match card slot")
         else:
-            # TODO Support ECC
-            raise ValueError("ECC not implemented yet!")
+            raise ValueError("Key type not implemented!")
+        self.put_data(0xC0 + slot, data)
 
     def store_creationtime(self, ctime, slot):
         if (slot not in (1, 2, 3)):

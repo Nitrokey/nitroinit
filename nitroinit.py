@@ -140,7 +140,7 @@ def import_keys(keys):
                 q = key['q']
                 bit_len = key['bit_len']
                 card.import_rsakey(p, q, bit_len, ctime_raw, fp, slot)
-                print("Key [%s] imported to slot %i..." % (flag, slot))
+                print("Key [%s] imported to slot %i." % (flag, slot))
             elif key['algo'] == "ecdsa" or key['algo'] == "ecdh":
                 algo = key['algo']
                 oid = key['oid']
@@ -154,7 +154,8 @@ def import_keys(keys):
 def main():
 
     # get passphrase
-    passphrase = getpass.getpass("Please provide passphrase of the key: ")
+    passphrase = getpass.getpass("Please provide passphrase of the key or hit enter if no " + \
+                                 "passphrase is used: ")
 
     # open key file and parse it to get the key packets
     with open(keyfile, 'rb') as f:
@@ -169,6 +170,10 @@ def main():
     keys = check_keys(keys)
     print_summary(userid, keys)
 
+    # Do not import, dry-run only
+    if dry:
+        sys.exit(0)
+
     input("\nPlease press enter to start importing... (Ctrl-C otherwise)\n")
 
     import_keys(keys)
@@ -181,11 +186,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generating and importing keys to Nitrokey devices')
     parser.add_argument('--reader', nargs=1, type=int, dest='reader',
             help='reader to use, in case there are multiple reader present on the system')
+    parser.add_argument('--dry-run', dest='dry', action='store_true',
+            help='Do not actually change anything, just sum up operations')
     parser.add_argument('--keyfile', dest='keyfile', required=True,
             help='keyfile to import to the Nitrokey (e.g. exported from GnuPG)')
     args = parser.parse_args()
 
     keyfile = args.keyfile
     reader = args.reader
+    dry = args.dry
 
     main()

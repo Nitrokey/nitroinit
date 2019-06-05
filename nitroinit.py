@@ -52,23 +52,24 @@ def parse_packets(packets):
         
         # get key data from Secret Key Packet
         if packet.name == "Secret Key Packet" or packet.name == "Secret Subkey Packet":
-            key = {'algo': packet.pub_algorithm_type}
+            key = {
+                    'algo': packet.pub_algorithm_type,
+                    'ctime_raw':    packet.raw_creation_time,
+                    'ctime':   packet.creation_time,
+                    'fp':       packet.fingerprint,
+                  }
 
             if key['algo'] == "rsa":
                 key.update({
                     'p':       packet.prime_p,
                     'q':       packet.prime_q,
                     'bit_len': packet.modulus_bitlen,
-                    'ctime':   packet.raw_creation_time,
-                    'fp':      packet.fingerprint,
                     })
             elif key['algo'] == "ecdsa" or key['algo'] == "ecdh":
                 key.update({
                     'oid':      packet.oid,
                     'bit_len':  packet.bitlen,
                     'private':  packet.private_d,
-                    'ctime':    packet.raw_creation_time,
-                    'fp':       packet.fingerprint,
                     })
             else:
                 raise # TODO add curve25519 keys
@@ -116,7 +117,7 @@ def print_summary(userid, keys):
         if keylist:
             key = keylist[0]
             algo = key['algo'] + str(key['bit_len'])
-            print("[%s] %s %s" % (flag, algo, key['fp']))
+            print("[%s] %s %s (%s)" % (flag, algo, key['fp'], key['ctime']))
 
 
 def import_keys(keys):
@@ -129,7 +130,7 @@ def import_keys(keys):
     for flag, keylist in keys.items():
         if keylist:
             key = keylist[0]
-            ctime = key['ctime']
+            ctime_raw = key['ctime_raw']
             fp = key['fp']
             slot = slots[flag]
 
@@ -138,13 +139,13 @@ def import_keys(keys):
                 p = key['p']
                 q = key['q']
                 bit_len = key['bit_len']
-                card.import_rsakey(p, q, bit_len, ctime, fp, slot)
+                card.import_rsakey(p, q, bit_len, ctime_raw, fp, slot)
                 print("Key [%s] imported to slot %i..." % (flag, slot))
             elif key['algo'] == "ecdsa" or key['algo'] == "ecdh":
                 algo = key['algo']
                 oid = key['oid']
                 private = key['private']
-                card.import_ecckey(algo, oid, private, ctime, fp, slot)
+                card.import_ecckey(algo, oid, private, ctime_raw, fp, slot)
                 print("Key [%s] imported to slot %i..." % (flag, slot))
             else:
                 raise # TODO add curve25519 keys

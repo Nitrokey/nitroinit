@@ -114,8 +114,11 @@ class OpenPGPCard():
 
         return apdu
 
-    def get_data(self, tag):
+    def get_data(self, tag, debug=False):
         apdu = self.construct_apdu(0xCA, (tag >> 8) & 0xff, tag & 0xff, None, 0x00)
+
+        if debug:
+            print_apdu(apdu)
 
         data, sw1, sw2 = self.connection.transmit(apdu)
         # TODO implement GET RESPONSE for big data output
@@ -253,6 +256,21 @@ class OpenPGPCard():
         ctime = pack('>I', ctime)
         self.put_data(0xCD + slot, ctime)
 
+    def get_creationtime(self, slot):
+        '''Reads creation time for slot from card and returns seconds since Unix time'''
+        if (slot not in (1, 2, 3)):
+            raise ValueError("Wrong slot number! There exist only key slots 1, 2 and 3")
+
+        # get 'Application Related Data' DO (6E)
+        data = self.get_data(0x6e)
+
+        # this DO contains much more than the fingerprints (-> we need to calculate position)
+        # see 9.1 of OpenPGP Card specification for list of values
+        ctime_start = 0xd8 + slot * 4 # (each fingerprint being 4 bytes long, first at 0xdc)
+        ctime = data[ctime_start:ctime_start + 4]
+
+        return int.from_bytes(ctime, byteorder='big')
+
     def store_fingerprint(self, fp, slot):
         if (slot not in (1, 2, 3)):
             raise ValueError("Wrong slot number! There exist only key slots 1, 2 and 3")
@@ -260,3 +278,16 @@ class OpenPGPCard():
         # TODO check for reasonable value/only transform if necessary
         self.put_data(0xC6 + slot, list(binascii.unhexlify(fp)))
 
+    def get_fingerprint(self, slot):
+        if (slot not in (1, 2, 3)):
+            raise ValueError("Wrong slot number! There exist only key slots 1, 2 and 3")
+
+        # get 'Application Related Data' DO (6E)
+        data = self.get_data(0x6e)
+
+        # this DO contains much more than the fingerprints (-> we need to calculate position)
+        # see 9.1 of OpenPGP Card specification for list of values
+        fpr_start = 0x48 + slot * 20 # (each fingerprint being 20 bytes long, first at 0x60)
+        fpr = binascii.hexlify(bytes(data[fpr_start:fpr_start + 20])).decode('ascii').upper()
+
+        return fpr

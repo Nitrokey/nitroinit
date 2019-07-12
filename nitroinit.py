@@ -127,6 +127,18 @@ def import_keys(keys):
     else:
         card = OpenPGPCard()
 
+    # check for existing keys and warn user
+    for flag, slot in slots.items():
+        # if fingerprint is present, a key is already stored
+        # and only warn if (sub)key is actually overwritten
+        if card.get_fingerprint(slot) and flag in keys.keys(): 
+            print("\nWARNING! Existing keys on card will be overwritten!")
+            response = input("Are you sure you want to proceed? Type 'yes' to proceed? ")
+            if response != "yes":
+                sys.exit(1)
+            print()
+            break;
+
     for flag, keylist in keys.items():
         if keylist:
             key = keylist[0]

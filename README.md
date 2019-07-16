@@ -25,6 +25,7 @@ optional arguments:
   -h, --help         show this help message and exit
   --reader READER    reader to use, in case there are multiple reader present
                      on the system
+  --dry-run          Do not actually change anything, just sum up operations
   --keyfile KEYFILE  keyfile to import to the Nitrokey (e.g. exported from
                      GnuPG)
 ```
@@ -37,11 +38,8 @@ docker-compose run build-binaries
 
 ## TODOs
 
-* add option for gpg-agent usage
+* add option for generating new keys (outside of Nitrokey, thus with backup)
 * debug Nitrokey Start
 * automatically build windows
-* add --dry-run option
-* warn about existing keys
-* print ctime in key choose function
+* add option for gpg-agent usage
 * enable import of curve25519 keys (python-pgpdump related)
-* add option for generating new keys (outside of Nitrokey, thus with backup)

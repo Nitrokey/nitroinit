@@ -25,17 +25,19 @@ SPDX-License-Identifier: GPL-3.0
 
 import gpg
 import os
+import sys
 
 
 def input_keyattr():
     algo = size = None
 
-    print("\nPlease select what kind of key you want:\n   (1) RSA\n   (2) ECC")
+    print("Please select what kind of key you want:\n   (1) RSA\n   (2) ECC")
     algo = input("Your selection? ")
 
     if algo == "1":
         algo = "rsa"
         size = input("\nWhat keysize do you want (2048, 3076, 4096)? ")
+        print()
         if size in ["2048", "3076", "4096"]:
             algorithm = "{0}{1}".format(algo, size)
         else:
@@ -51,6 +53,7 @@ def input_keyattr():
         print("   (7) Brainpool P-384")
         print("   (8) Brainpool P-512")
         algorithm = input("Your selection? ")
+        print()
         # FIXME ecc not fully working with GPGME find out why!
     else:
         raise ValueError("Wrong selection, please choose 1 (rsa) or 2 (ecc).")
@@ -60,7 +63,7 @@ def input_keyattr():
 
 def input_userid():
     uid = {}
-    print("\nWe need to construct a user ID to identify your key.")
+    print("We need to construct a user ID to identify your key.")
     uid['name'] = input("Enter the name of the user ID: ")
     uid['email'] = input("Enter the email address of the user ID: ")
     uid['cmnt'] = input("Enter a comment to include (optional): ")
@@ -68,20 +71,18 @@ def input_userid():
     return uid
 
 
-def create_key():
+def create_key(expert=False):
     algorithm = "rsa3072" # default values
     exp_time = 0
     expires = False
 
     c = gpg.Context()
 
-    # FIXME add expert argument/flag instead of asking user
-    choosen_path = input("Create key with reasonable default (1) or change key attributes (2)? [1]")
-    if choosen_path == "2":
+    # let user change key attributes
+    if expert:
         algorithm = input_keyattr()
 
-    # craft key attributes
-
+    # ask user for User ID
     uid = input_userid() # FIXME ask for expiration time here as well
 
     # craft userid
@@ -133,4 +134,7 @@ def create_key():
 
 
 if __name__ == '__main__':
-    create_key()
+    if len(sys.argv) > 1 and sys.argv[1] == "--expert":
+        create_key(expert=True)
+    else:
+        create_key()

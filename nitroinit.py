@@ -28,6 +28,7 @@ import os
 import sys
 from pgpdump import AsciiData, BinaryData
 from openpgpcard import OpenPGPCard
+from keycreation import create_key
 
 
 slots = {'S': 1, 'E': 2, 'A': 3}
@@ -97,7 +98,7 @@ def check_keys(keys):
 
             for i, key in enumerate(keylist):
                 algo = key['algo'] + str(key['bit_len'])
-                print("%i:  %s %s" % (i, algo, key['fp']))
+                print("%i:  %s %s (%s)" % (i, algo, key['fp'], key['ctime']))
             selection = input("\nPlease choose which one to use (enter 'q' to abort): ")
 
             if selection == 'q':
@@ -163,11 +164,23 @@ def import_keys(keys):
                 raise # TODO add curve25519 keys
 
 
-def main():
+def main(keyfile):
+    passphrase = None
 
-    # get passphrase
-    passphrase = getpass.getpass("Please provide passphrase of the key or hit enter if no " + \
-                                 "passphrase is used: ")
+    print("\nNitroinit - Create and import GnuPG keys to the Nitrokey\n") 
+
+    # No keyfile was given, thus create a new key and import this one
+    if keyfile is None:
+        print("No keyfile was provided. We create a new key, backup it and then import it to " + \
+              "the Nitrokey.")
+        print("You can provide an existing key via '--keyfile' flag. Please use '--help' for " + \
+                "more information.")
+        print("We start key creation now...\n")
+        keyfile = create_key()
+    else:
+        # get passphrase
+        passphrase = getpass.getpass("Please provide passphrase of the key or hit enter if no " + \
+                                     "passphrase is used: ")
 
     # open key file and parse it to get the key packets
     with open(keyfile, 'rb') as f:
@@ -195,12 +208,12 @@ def main():
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Generating and importing keys to Nitrokey devices')
+    parser = argparse.ArgumentParser(description='Create and import GnuPG keys to the Nitrokey')
     parser.add_argument('--reader', nargs=1, type=int, dest='reader',
             help='reader to use, in case there are multiple reader present on the system')
     parser.add_argument('--dry-run', dest='dry', action='store_true',
             help='Do not actually change anything, just sum up operations')
-    parser.add_argument('--keyfile', dest='keyfile', required=True,
+    parser.add_argument('--keyfile', dest='keyfile',
             help='keyfile to import to the Nitrokey (e.g. exported from GnuPG)')
     args = parser.parse_args()
 
@@ -208,4 +221,4 @@ if __name__ == '__main__':
     reader = args.reader
     dry = args.dry
 
-    main()
+    main(keyfile)

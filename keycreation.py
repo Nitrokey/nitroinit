@@ -46,6 +46,7 @@ def input_keyattr():
     elif algo == "2":
         raise ValueError("ECC key creation not working yet")
         print("\nPlease select which elliptic curve you want:")
+        # TODO add curve25519 if supported
         print("   (3) NIST P-256")
         print("   (4) NIST P-384")
         print("   (5) NIST P-521")
@@ -63,15 +64,16 @@ def input_keyattr():
 
 def input_userid():
     uid = {}
-    print("We need to construct a user ID to identify your key.")
-    uid['name'] = input("Enter the name of the user ID: ")
-    uid['email'] = input("Enter the email address of the user ID: ")
+    print("Please provide a user ID to identify your key.")
+    uid['name'] = input("Enter the name for the user ID: ")
+    uid['email'] = input("Enter the email address for the user ID: ")
     uid['cmnt'] = input("Enter a comment to include (optional): ")
     print()
     return uid
 
 
 def create_key(expert=False):
+    # TODO do not use rsa3072 for NK Start
     algorithm = "rsa3072" # default values
     exp_time = 0
     expires = False
@@ -121,6 +123,8 @@ def create_key(expert=False):
     else:
         pass # TODO add proper exception
 
+    print("Keys exported as {0} and {1}.".format(keyfile, keyfile_pub)) 
+
     # delete secret key from keyring (as it will be imported to the Nitrokey)
     # op_delete_ext accepts two flags which can be set bit-wise
     # 1 - delete secret keys; 2 - do not ask user before deletion
@@ -131,6 +135,9 @@ def create_key(expert=False):
     with open(keyfile_pub, "rb") as f:
         pubkey = f.read()
     c.key_import(pubkey) # TODO add error handling
+
+    # provide path to secret keyfile
+    return keyfile
 
 
 if __name__ == '__main__':

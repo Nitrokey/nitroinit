@@ -3,7 +3,7 @@
 '''
 Copyright (c) 2019 Nitrokey UG
 
-This file is part of nitroinit.
+This file is part of Nitroinit.
 
 Nitroinit is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ def input_keyattr():
     elif algo == "2":
         raise ValueError("ECC key creation not working yet")
         print("\nPlease select which elliptic curve you want:")
-        # TODO add curve25519 if supported
+        # TODO add curve25519 for Nitrokey Start devices only
         print("   (3) NIST P-256")
         print("   (4) NIST P-384")
         print("   (5) NIST P-521")
@@ -99,7 +99,7 @@ def create_key(expert=False):
     esub = c.create_subkey(key, algorithm, exp_time, expires, encrypt=True)
     asub = c.create_subkey(key, algorithm, exp_time, expires, authenticate=True)
 
-    # FIXME ask for location of backup keys
+    # FIXME ask for desired location of backup keys
     keyfile = os.path.expanduser("~/{0} <{1}>-sec.gpg".format(uid['name'], uid['email']))
     keyfile_pub = os.path.expanduser("~/{0} <{1}>-pub.gpg".format(uid['name'], uid['email']))
 

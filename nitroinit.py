@@ -3,24 +3,23 @@
 '''
 Copyright (c) 2019 Nitrokey UG
 
-This file is part of nitroinit.
+This file is part of Nitroinit.
 
-Key Tool is free software: you can redistribute it and/or modify
+Nitroinit is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 any later version.
 
-Key Tool is distributed in the hope that it will be useful,
+Nitroinit is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Nitrokey App. If not, see <http://www.gnu.org/licenses/>.
+along with Nitroinit. If not, see <http://www.gnu.org/licenses/>.
 
 SPDX-License-Identifier: GPL-3.0
 '''
-
 
 import argparse
 import getpass
@@ -135,11 +134,12 @@ def import_keys(keys):
         if card.get_fingerprint(slot) and flag in keys.keys(): 
             print("\nWARNING! Existing keys on card will be overwritten!")
             response = input("Are you sure you want to proceed? Type 'yes' to proceed? ")
+            print()
             if response != "yes":
                 sys.exit(1)
-            print()
             break;
 
+    # start importing
     for flag, keylist in keys.items():
         if keylist:
             key = keylist[0]
@@ -147,7 +147,6 @@ def import_keys(keys):
             fp = key['fp']
             slot = slots[flag]
 
-            # start importing
             if key['algo'] == 'rsa':
                 p = key['p']
                 q = key['q']
@@ -205,16 +204,18 @@ def main(keyfile):
 
     print("\nImport successful.\n")
 
+    # FIXME add passphrase to key backup
+
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Create and import GnuPG keys to the Nitrokey')
-    parser.add_argument('--reader', nargs=1, type=int, dest='reader',
-            help='reader to use, in case there are multiple reader present on the system')
-    parser.add_argument('--dry-run', dest='dry', action='store_true',
-            help='Do not actually change anything, just sum up operations')
     parser.add_argument('--keyfile', dest='keyfile',
             help='keyfile to import to the Nitrokey (e.g. exported from GnuPG)')
+    parser.add_argument('--dry-run', dest='dry', action='store_true',
+            help='Do not actually change anything on the Nitrokey. New keys may are created.')
+    parser.add_argument('--reader', nargs=1, type=int, dest='reader',
+            help='reader to use, in case there are multiple reader present on the system')
     args = parser.parse_args()
 
     keyfile = args.keyfile

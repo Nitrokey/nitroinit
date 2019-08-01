@@ -8,16 +8,26 @@ Create and import GnuPG keys to the Nitrokey.
 
 ### Linux
 
-You need to install pcscd on your system. Users of Debian-based systems like Ubuntu do:
+You need to install some libraries on your system. Users of Debian-based systems like Ubuntu do:
 
 ```
-sudo apt-get update
-sudo apt-get install pcscd
+sudo apt update
+sudo apt install pcscd python3-gpg python3-pyscard python3-cryptography
+```
+
+**Note: Because of [this bug](https://dev.gnupg.org/T4242) it is necessary to have GPGME version
+1.13.0 or higher installed -- at least if you like to create a new key. Importing existing keys is working with older versions, too. (please see also the [corresponding
+patch](https://dev.gnupg.org/rMf773ad392da57e6be4ade93c44baa5d2057c40b6))**
+
+Then clone the repo recursively:
+```
+sudo apt install git
+git clone --recursive https://github.com/Nitrokey/nitroinit/
 ```
 
 ## Usage
 ```
-usage: nitroinit [-h] [--keyfile KEYFILE] [--dry-run] [--reader READER]
+usage: nitroinit [-h] [--keyfile KEYFILE] [--expert] [--dry-run] [--reader READER]
 
 Create and import GnuPG keys to the Nitrokey
 
@@ -116,9 +126,12 @@ docker-compose run build-binaries
 
 ## TODOs
 
+* NIST-P 384, NIST-P 521, brainpoolP384r1, brainpoolP512r1 not working yet (GPG Agent states
+  'Invalid Length')
 * debug Nitrokey Start
 * use travis to do automatically build binaries and update requirements.txt
 * automatically build windows
-* add option for gpg-agent usage
+* add option for gpg-agent usage (instead of pcscd)
 * enable import of curve25519 keys (python-pgpdump related)
 * add passphrase to backup key file
+

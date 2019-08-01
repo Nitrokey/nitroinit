@@ -25,6 +25,8 @@ optional arguments:
   -h, --help         show this help message and exit
   --keyfile KEYFILE  keyfile to import to the Nitrokey (e.g. exported from
                      GnuPG)
+  --expert           Choose specific key algorithm attributes for newly
+                     generated keys.
   --dry-run          Do not actually change anything on the Nitrokey. New keys
                      may are created.
   --reader READER    reader to use, in case there are multiple reader present
@@ -107,7 +109,7 @@ Import successful.
 ```
 
 ## Building binaries
-
+**Note: This is currently not working properly**
 ```
 docker-compose run build-binaries
 ```
@@ -118,6 +120,5 @@ docker-compose run build-binaries
 * use travis to do automatically build binaries and update requirements.txt
 * automatically build windows
 * add option for gpg-agent usage
-* fix key creation of ecc keys
 * enable import of curve25519 keys (python-pgpdump related)
 * add passphrase to backup key file

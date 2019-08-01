@@ -122,6 +122,7 @@ def print_summary(userid, keys):
 
 def import_keys(keys):
     # connect with Nitrokey
+    # TODO add error handling
     if reader is not None:
         card = OpenPGPCard(reader)
     else:
@@ -163,19 +164,19 @@ def import_keys(keys):
                 raise # TODO add curve25519 keys
 
 
-def main(keyfile):
+def main(keyfile, expert):
     passphrase = None
 
     print("\nNitroinit - Create and import GnuPG keys to the Nitrokey\n") 
 
     # No keyfile was given, thus create a new key and import this one
     if keyfile is None:
-        print("No keyfile was provided. We create a new key, backup it and then import it to " + \
+        print("No keyfile was provided. We create a new key, back it up and then import it to " + \
               "the Nitrokey.")
         print("You can provide an existing key via '--keyfile' flag. Please use '--help' for " + \
                 "more information.")
         print("We start key creation now...\n")
-        keyfile = create_key()
+        keyfile = create_key(expert)
     else:
         # get passphrase
         passphrase = getpass.getpass("Please provide passphrase of the key or hit enter if no " + \
@@ -212,14 +213,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create and import GnuPG keys to the Nitrokey')
     parser.add_argument('--keyfile', dest='keyfile',
             help='keyfile to import to the Nitrokey (e.g. exported from GnuPG)')
+    parser.add_argument('--expert', dest='expert', action='store_true',
+            help='Choose specific key algorithm attributes for newly generated keys.')
     parser.add_argument('--dry-run', dest='dry', action='store_true',
             help='Do not actually change anything on the Nitrokey. New keys may are created.')
     parser.add_argument('--reader', nargs=1, type=int, dest='reader',
             help='reader to use, in case there are multiple reader present on the system')
     args = parser.parse_args()
 
-    keyfile = args.keyfile
     reader = args.reader
     dry = args.dry
 
-    main(keyfile)
+    main(args.keyfile, args.expert)

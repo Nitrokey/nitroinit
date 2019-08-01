@@ -29,35 +29,37 @@ import sys
 
 
 def input_keyattr():
-    algo = size = None
+    algorithms = {
+            1: "rsa2048",
+            2: "rsa3072",
+            3: "rsa4096",
+            4: "NIST P-256",
+            5: "NIST P-384", #FIXME GPG Agent returns "Invalid length"
+            6: "NIST P-521", #FIXME GPG Agent returns "Invalid length"
+            7: "brainpoolP256r1",
+            8: "brainpoolP384r1", #FIXME GPG Agent returns "Invalid length"
+            9: "brainpoolP512r1", #FIXME GPG Agent returns "Invalid length"
+            #10: "cv25519", TODO -> only NK Start can use this, thus more code is necessary
+            }
 
-    print("Please select what kind of key you want:\n   (1) RSA\n   (2) ECC")
-    algo = input("Your selection? ")
+    print("Please select the algorithm and size you want:")
+    print("   (1)  RSA 2048")
+    print("   (2)  RSA 3072")
+    print("   (3)  RSA 4096")
+    print("   (4)  NIST P-256")
+    #print("   (5)  NIST P-384")
+    #print("   (6)  NIST P-521")
+    print("   (7)  Brainpool P-256")
+    #print("   (8)  Brainpool P-384")
+    #print("   (9)  Brainpool P-512")
+    #print("   (10) Curve 25519") TODO -> only NK Start can use this, thus more code is necessary
+    algo = int(input("Your selection? "))
+    print()
 
-    if algo == "1":
-        algo = "rsa"
-        size = input("\nWhat keysize do you want (2048, 3076, 4096)? ")
-        print()
-        if size in ["2048", "3076", "4096"]:
-            algorithm = "{0}{1}".format(algo, size)
-        else:
-            raise ValueError("Wrong selection, please choose (2048, 3076, 4096).")
-
-    elif algo == "2":
-        raise ValueError("ECC key creation not working yet")
-        print("\nPlease select which elliptic curve you want:")
-        # TODO add curve25519 for Nitrokey Start devices only
-        print("   (3) NIST P-256")
-        print("   (4) NIST P-384")
-        print("   (5) NIST P-521")
-        print("   (6) Brainpool P-256")
-        print("   (7) Brainpool P-384")
-        print("   (8) Brainpool P-512")
-        algorithm = input("Your selection? ")
-        print()
-        # FIXME ecc not fully working with GPGME find out why!
+    if algo in range(1,9):
+        return algorithms[algo]
     else:
-        raise ValueError("Wrong selection, please choose 1 (rsa) or 2 (ecc).")
+        raise ValueError("Wrong selection, please choose a value between 1 and 9") 
 
     return algorithm
 
@@ -95,9 +97,14 @@ def create_key(expert=False):
 
     # generate main key, encryption subkey and authentication subkey
     newkey = c.create_key(userid, algorithm, exp_time, expires, certify=True, sign=True)
-    key = c.get_key(newkey.fpr, secret=True)
+    key = c.get_key(newkey.fpr, secret=True) # create_subkey can not be used with "newkey" var
     esub = c.create_subkey(key, algorithm, exp_time, expires, encrypt=True)
-    asub = c.create_subkey(key, algorithm, exp_time, expires, authenticate=True)
+    if algorithm[0:4] == "NIST" or algorithm[0:4] == "brai":
+        # Due to a bug we need to add the algorithm for NISTP and Brainpool to work
+        # See here https://lists.gnupg.org/pipermail/gnupg-users/2018-July/060755.html
+        asub = c.create_subkey(key, algorithm+"/ecdsa", exp_time, expires, authenticate=True)
+    else:
+        asub = c.create_subkey(key, algorithm, exp_time, expires, authenticate=True)
 
     # FIXME ask for desired location of backup keys
     keyfile = os.path.expanduser("~/{0} <{1}>-sec.gpg".format(uid['name'], uid['email']))

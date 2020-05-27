@@ -134,4 +134,11 @@ docker-compose run build-binaries
 * add option for gpg-agent usage (instead of pcscd)
 * enable import of curve25519 keys (python-pgpdump related)
 * add passphrase to backup key file
-
+* Idea: simultaneous S/MIME key usage:
+  * key slot 3 is used for authentication task which is not needed generally for common GnuPG task,
+    therefore the slot might be used for S/MIME key instead; following are some notes what might need
+    to be checked for that
+  * do not create authentication subkey (like done right now)
+  * either let import existing .p12 file to slot 3 or create a key with cert signing request and
+    implement a possibility to import the signed cert to cardholder certificate
+  * you might have a look at [OpenSC](https://github.com/OpenSC/OpenSC/) to have a look how the cert import is done there

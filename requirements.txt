@@ -1,4 +1,4 @@
 setuptools==41.0.1
-cryptography==3.3.2
+cryptography==39.0.1
 pyscard==1.9.7
 gpg==1.10.0
